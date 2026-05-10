@@ -1,0 +1,155 @@
+# WebMCP による文献検索デモンストレーション
+
+[WebMCP](https://github.com/webmachinelearning/webmcp) に対応したブラウザでは AI エージェントから同じ検索フォームを `searchPaper` ツールとして利用できます。
+この機能を利用して、AI エージェントを介してCiNii Research を自然言語により検索できます。
+
+## 動作環境
+
+- Google Chrome (Windows) バージョン 148.0.7778.97（公式ビルド） （64 ビット）
+- Claude for Chrome
+
+## 実行方法
+
+### Chrome での WebMCP の有効化
+
+以下の手順で WebMCP を有効化してください。
+
+1. Chrome **146.0.7672.0 以降** を用意します。
+2. アドレスバーに `chrome://flags/#enable-webmcp-testing` を入力します（フラグ名: **WebMCP for testing**）。
+3. `Enabled` に変更し、`Relaunch` ボタンで **必ず Chrome を再起動してください**。
+4. 再起動後にこのページを **改めて開き直してください**（既に開いていたタブはリロードでは反映されないことがあるので、閉じてから開き直してください）。
+5. 右上に「**WebMCP: このブラウザで利用可能**」と表示されることを確認してください。
+
+### ローカル環境での実行
+
+1. Web サーバをご用意ください。ES Modules を使用しているため、`file://` ではなく HTTP サーバ経由で開く必要があります。
+
+   ```sh
+   # Python が入っていれば
+   python -m http.server 8000
+
+   # あるいは
+   npx serve .
+   ```
+
+2. `http://localhost:8000/` を Chrome で開いてください。
+3. 右上に「**WebMCP: このブラウザで利用可能**」と表示されることを確認してください。
+4. Claude for Chrome を起動して、このデモンストレーションページを参照できるようにしてください。
+5. Claude で「CiNii で熱帯農業に関する図書を検索してください」のように自然言語で質問してください。フォームに適切なキーワードを入力して検索を実行し、結果を返します。
+
+## 機能
+
+- CiNii Research OpenSearch v2 を直接呼び出して検索
+- 検索条件: タイトル / 刊行物名 / 出版年（範囲）/ フリーワード / 人物名 / 本文有無 / 所属機関 / 注記・抄録 / 言語種別（ISO-639-1、複数 OR）
+- CiNii の検索種別（all / articles / books / data / dissertations / projects / researchers / projectsAndProducts）切替
+- 結果のページネーション・ソート
+- WebMCP 宣言的 API（フォーム属性）と命令的 API（`navigator.modelContext.registerTool`、旧仕様の `provideContext` にもフォールバック対応）の両方に対応
+- JAIRO Cloud 用のアダプタ枠を用意（メンテナンス復旧後に有効化予定）
+
+## ディレクトリ構成
+
+```
+webmcp-opensearch-ui/
+├── index.html        # フォーム + 結果領域 (WebMCP 宣言的属性付き)
+├── app.js            # フォーム制御、ディスパッチ、レンダリング、WebMCP 命令的 API 登録
+├── sources/
+│   ├── cinii.js      # CiNii Research アダプタ（実装）
+│   └── jairo.js      # JAIRO Cloud アダプタ（スタブ、available: false）
+├── styles.css
+├── .nojekyll         # GitHub Pages 用
+└── README.md
+```
+
+## GitHub Pages へのデプロイする場合
+
+1. このディレクトリを GitHub のリポジトリに push（`main` ブランチ）
+2. リポジトリ Settings → Pages → Build and deployment
+   - Source: **Deploy from a branch**
+   - Branch: **main** / **(root)**
+3. 数十秒待つと `https://<user>.github.io/webmcp-opensearch-ui/` で公開されます。
+
+`.nojekyll` を含めているので Jekyll 処理は無効化されます（`sources/` 等のサブディレクトリも素直に配信されます）。
+
+## CiNii APIキーの利用
+
+CiNii Research OpenSearch v2 では、APIキーをパラメータ `appid` として指定することが必要です。
+このデモンストレーションでは未指定でもリクエストが可能ですが、以下から「CiNiiウェブAPI 利用登録」を行いAPIキーを取得してご利用ください。
+
+CiNii全般 - メタデータ・API - API利用登録：https://support.nii.ac.jp/ja/cinii/api/developer
+
+このデモンストレーションでのappidの設定方法は以下の通りです。
+
+- ページ下部の **「CiNii の appid を設定する」** を開いて入力 → 「保存」
+- もしくはブラウザの DevTools コンソールで:
+  ```js
+  localStorage.setItem('cinii.appid', 'YOUR_APPID');
+  ```
+
+`appid` はブラウザの `localStorage` にのみ保存されます。CiNiiへの検索に使用する以外には、外部には送信されません。
+
+## WebMCP の動作について
+
+WebMCP は 2026 年 2 月時点で W3C Web ML CG により策定中の標準です。
+今後、仕様等の変更により、このデモンストレーションが利用できないことがあります。
+動作確認済みの環境および有効化手順については「[動作環境](#動作環境)」「[Chrome での WebMCP の有効化](#chrome-での-webmcp-の有効化)」を参照してください。
+
+### うまく検出されない場合
+
+DevTools コンソール（F12）で以下を実行して API の有効化を確認してください。
+
+```js
+console.log('modelContext:',        !!navigator.modelContext);
+console.log('modelContextTesting:', !!navigator.modelContextTesting);
+```
+
+- どちらも `true` → フラグ有効です。ページの検出ロジックを再確認してください。
+- どちらも `false` → フラグ未適用です。Chrome 完全終了 → 再起動を再度実施してください。
+- バージョンが 146 未満 → Chrome を更新してください。
+
+`navigator.modelContextTesting` はプレビュー期間中の検査用 API で、登録済みツールの一覧取得や手動実行ができます。
+
+WebMCP 対応エージェント（Claude for Chrome 等）を使うと、本ページを開いた状態で「水管理に関する論文を CiNii から探して」等の自然言語でエージェントに検索を依頼できます。エージェントは `searchPaper` ツールを呼び出し、フォームに値が入って結果が表示されます。
+
+未対応のブラウザでも通常のフォーム検索として完全に動作します。
+
+## アダプタを追加する
+
+別の OpenSearch エンドポイント（例: 機関リポジトリ独自の検索 API）を追加したい場合:
+
+1. `sources/<id>.js` を作成し、以下を export してください。
+   ```js
+   export const myAdapter = {
+     id: 'mySource',
+     label: '表示名',
+     available: true,
+     supportedFields: [/* 共通パラメータのうち対応するもの */],
+     buildURL(params) { /* URL を組む */ },
+     async search(params, { signal }) { /* fetch + 正規化 */ },
+     normalizeItem(rawItem) { /* 共通レコード形に変換 */ },
+   };
+   ```
+2. `app.js` の `ADAPTERS` に登録
+3. `index.html` の `<fieldset class="sources-fieldset">` にチェックボックスを追加
+
+正規化された結果オブジェクトは
+`{ source, id, title, creators[], publication, year, description, link, hasFullText, raw }`
+の形を共通とします。
+
+## 参考
+
+- [CiNii Research OpenSearch 仕様](https://support.nii.ac.jp/ja/cir/r_opensearch)
+- [WebMCP (W3C Web Machine Learning Community Group)](https://github.com/webmachinelearning/webmcp)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+
+## ライセンス
+
+[CC0 1.0 Universal (Public Domain Dedication)](https://creativecommons.org/publicdomain/zero/1.0/deed.ja)
+
+本リポジトリのコード・ドキュメントは作者によって著作権が放棄されており、商用・非商用を問わず、帰属表示なしに自由に複製・改変・配布できます。
+
+## 注記
+
+このデモンストレーションの作成は生成AIの支援を受けています。
+
+## 作者
+Takanori Hayashi
