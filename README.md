@@ -1,4 +1,4 @@
-tzhaya氏が作成したCiNii検索用のWebMCPを動作確認のためにフォークしたものです。  
+[tzhaya氏が作成したCiNii検索用のWebMCP](https://github.com/tzhaya/webmcp-opensearch-ui)を動作確認のためにフォークしたものです。  
 以下はもともとのリポジトリのREADMEです。
 
 ---
