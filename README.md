@@ -1,3 +1,7 @@
+tzhaya氏が作成したCiNii検索用のWebMCPを動作確認のためにフォークしたものです。  
+以下はもともとのリポジトリのREADMEです。
+
+---
 # WebMCP による文献検索デモンストレーション
 
 [WebMCP](https://github.com/webmachinelearning/webmcp) に対応したブラウザでは AI エージェントから同じ検索フォームを `searchPaper` ツールとして利用できます。
