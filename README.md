@@ -1,6 +1,6 @@
 [tzhaya氏が作成したCiNii検索用のWebMCP](https://github.com/tzhaya/webmcp-opensearch-ui)を動作確認のためにフォークしたものです。  
 
-以下にPagesを公開しました。このPages上でClaude in Chromeを利用することで，Cloneや自環境でサーバーを立てなくてもこのWebMCPを利用できるはずです。  
+以下にPagesを公開しました。このPages上でClaude in Chromeを利用することで，cloneや自環境でサーバーを建てなくてもこのWebMCPをテストできます。  
 https://hellboy84.github.io/webmcp-opensearch-ui/
 
 
